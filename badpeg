@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+# test for jpeginfo binary
+ if ! (command -v jpeginfo > /dev/null 2>&1); then
+     echo "missing jpeginfo command"
+     exit 1
+  fi
+
+# validate input
+if [ ! -d "$1" ]; then
+  echo "The input directory" $1 not found
+fi
+
+# delete bad jpeg files
+find $1 -name *.jpg -maxdepth 1 | xargs jpeginfo -c -q -d - > /dev/null 2>&1
+
+exit 0
