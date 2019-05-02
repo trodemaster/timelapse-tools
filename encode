@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob
+
+# test for ffmpeg in the path
+if ! hash "ffmpeg" >/dev/null 2>&1; then
+  echo "Error: ffmpeg not found in path"
+  exit 1
+fi
+
+# test for jpeginfo binary
+if ! hash "jpeginfo" >/dev/null 2>&1; then
+  echo "Error: missing jpeginfo command"
+  exit 1
+fi
+
+# Define global variables and set defaults
+INPUT_PATH="$PWD"
+ENCODE_ARCHIVE=1
+
+# print out usage
+usage() {
+  cat <<EOF
+USAGE: ./encode -p /Volumes/zen/timelapse/
+OPTIONS:
+   -p    Path to source images
+   -a    Encode with archive format
+   -h    Help
+EOF
+  exit
+}
+
+# process options and arguments
+while getopts "p:ah" OPTION; do
+  case $OPTION in
+  h) usage && exit 1 ;;
+  p) INPUT_PATH=$OPTARG ;;
+  a) ENCODE_ARCHIVE=0 ;;
+  esac
+done
+
+# test for the provided path
+if ! [[ -d $INPUT_PATH ]]; then
+  echo "Error: path not found! ${INPUT_PATH}"
+  exit 1
+fi
+
+# get the first jpg file in the provided path and get details on it
+get_info() {
+  FIRST_JPG=$(find ${INPUT_PATH} -maxdepth 1 -name '*.[Jj][Pp][Gg]' | head -n 1) || true
+  jpeginfo -i "$FIRST_JPG"
+}
+
+get_info
+#echo $FIRST_JPG
+echo FIN
+exit 0
+
+# test for jpegs at the provided path
+if ! [[ FIRST_JPG=$(find -maxdepth 1 ${INPUT_PATH} *.[Jj][Pp][Gg] | head -n 1) ]]; then
+  echo "Error: ${INPUT_PATH}/*.jpg not found!"
+fi
+
+#jpeginfo $FIRST_JPG
+
+exit 0
