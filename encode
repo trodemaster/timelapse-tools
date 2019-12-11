@@ -125,7 +125,7 @@ if [[ $ENCODE_ARCHIVE == 0 ]]; then
   archive_encode
   open ${OUTPUT_PATH}
 fi
-
+ 
 if [[ $HD_ARCHIVE == 0 ]]; then
   hd_encode
   open ${OUTPUT_PATH}
