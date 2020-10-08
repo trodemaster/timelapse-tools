@@ -7,7 +7,7 @@ shopt -s nocaseglob
 dl_verify_jpeg () {
 curl -s $1 -o $2
 	#echo $2
-	until [[ `/opt/local/bin/convert $2 -format "%[pixel: u.p{699,465}]" info:` != fractal ]]
+	until [[ `convert $2 -format "%[pixel: u.p{699,465}]" info:` != fractal ]]
 		do
 			echo bad jpeg found $2 attempting redownload
 			rm $2
@@ -17,10 +17,9 @@ curl -s $1 -o $2
 }
 
 
-dl_verify_jpeg http://common.snow.com/mtncams/Cowboy%20Mountain.jpg /Volumes/Zen/Images/StevensPass19-20/CowboyMountain/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/UpperSkylineCamera.jpg /Volumes/Zen/Images/StevensPass19-20/UpperSkylineCamera/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/LowerSkylineCamera.jpg /Volumes/Zen/Images/StevensPass19-20/LowerSkylineCamera/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/Glacier%20Peak.jpg /Volumes/Zen/Images/StevensPass19-20/GlacierPeak/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/Gemini.jpg /Volumes/Zen/Images/StevensPass19-20/Gemini/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/Tye%20Mill%20Top%20Terminal.jpg /Volumes/Zen/Images/StevensPass19-20/TyeMillTopTerminal/$(date "+%y%m%d-%H%M").jpg
-dl_verify_jpeg http://common.snow.com/mtncams/South%20Divide.jpg /Volumes/Zen/Images/StevensPass19-20/SouthDivide/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/Cowboy%20Mountain.jpg /zen/images/StevensPass20-21/CowboyMountain/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/Skyline.jpg /zen/images/StevensPass20-21/UpperSkylineCamera/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/Glacier%20Peak.jpg /zen/images/StevensPass20-21/GlacierPeak/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/Gemini.jpg /zen/images/StevensPass20-21/Gemini/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/Tye%20Mill%20Top%20Terminal.jpg /zen/images/StevensPass20-21/TyeMillTopTerminal/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/South%20Divide.jpg /zen/images/StevensPass20-21/SouthDivide/$(date "+%y%m%d-%H%M").jpg
