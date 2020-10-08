@@ -1,0 +1,12 @@
+#/etc/systemd/system/archive_webcam.service
+[Unit]
+Description=Archive webcam images to disk
+
+[Service]
+User=nasuer 
+Group=media
+Type=simple
+ExecStart=/home/blake/code/timelapse-tools/archive_webcam
+
+[Install]
+WantedBy=multi-user.target
