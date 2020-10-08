@@ -16,10 +16,10 @@ curl -s $1 -o $2
 		done	
 }
 
-
 dl_verify_jpeg http://common.snow.com/mtncams/Cowboy%20Mountain.jpg /zen/images/StevensPass20-21/CowboyMountain/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/Skyline.jpg /zen/images/StevensPass20-21/UpperSkylineCamera/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/Glacier%20Peak.jpg /zen/images/StevensPass20-21/GlacierPeak/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/Gemini.jpg /zen/images/StevensPass20-21/Gemini/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/Tye%20Mill%20Top%20Terminal.jpg /zen/images/StevensPass20-21/TyeMillTopTerminal/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/South%20Divide.jpg /zen/images/StevensPass20-21/SouthDivide/$(date "+%y%m%d-%H%M").jpg
+dl_verify_jpeg http://common.snow.com/mtncams/SPBaseArea.jpg /zen/images/StevensPass20-21/SPBaseArea/$(date "+%y%m%d-%H%M").jpg
