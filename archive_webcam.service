@@ -3,7 +3,7 @@
 Description=Archive webcam images to disk
 
 [Service]
-User=nasuer 
+User=nasuser 
 Group=media
 Type=simple
 ExecStart=/home/blake/code/timelapse-tools/archive_webcam
