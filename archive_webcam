@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-set -euo pipefail
-IFS=$'\n\t'
-shopt -s nullglob
-shopt -s nocaseglob
+#set -euo pipefail
+#IFS=$'\n\t'
+#shopt -s nullglob
+#shopt -s nocaseglob
 
 dl_verify_jpeg () {
 curl -s $1 -o $2
 	#echo $2
-	until [[ `convert $2 -format "%[pixel: u.p{699,465}]" info:` != fractal ]]
+	until (jpeginfo -c $2 | grep -e OK >/dev/null 2>&1)
 		do
 			echo bad jpeg found $2 attempting redownload
+			jpeginfo -c $2
 			rm $2
 			sleep 20
 			curl -s $1 -o $2
@@ -23,3 +24,5 @@ dl_verify_jpeg http://common.snow.com/mtncams/Gemini.jpg /zen/images/StevensPass
 dl_verify_jpeg http://common.snow.com/mtncams/Tye%20Mill%20Top%20Terminal.jpg /zen/images/StevensPass20-21/TyeMillTopTerminal/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/South%20Divide.jpg /zen/images/StevensPass20-21/SouthDivide/$(date "+%y%m%d-%H%M").jpg
 dl_verify_jpeg http://common.snow.com/mtncams/SPBaseArea.jpg /zen/images/StevensPass20-21/SPBaseArea/$(date "+%y%m%d-%H%M").jpg
+echo "archive_webcam downloads completed"
+exit 0
