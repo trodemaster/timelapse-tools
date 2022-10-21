@@ -37,6 +37,7 @@ OPTIONS:
    -a    Encode with archive format
    -v    Encode with hevc hardware encoder 60fps
    -d    Encode with HD 1080p 60fps
+   -3    Encode 3d
    -t    Encode for twitter
    -h    Help
 EOF
@@ -44,13 +45,14 @@ EOF
 }
 
 # process options and arguments
-while getopts "bp:o:adtvh" OPTION; do
+while getopts "bp:o:adtvh3" OPTION; do
   case $OPTION in
   h) usage && exit 1 ;;
   p) INPUT_PATH=$OPTARG ;;
   o) OUTPUT_PATH=$OPTARG ;;
   a) ENCODE_ARCHIVE=0 ;;
   v) ENCODE_ARCHIVE_HARDWARE=0 ;;
+  3) ENCODE_3D=0;;
   d) HD_ARCHIVE=0 ;;
   t) TWITTER=0 ;;
   b) BADPEG=0 ;;
@@ -130,6 +132,11 @@ twitter_encode() {
   fi
 }
 
+3d_encode() {
+    ffmpeg -i "${INPUT_PATH}" -pix_fmt yuv420p -vf stereo3d=sbsl:arbg -c:a copy ${OUTPUT_PATH} 
+}
+
+
 if [[ $BADPEG == 0 ]]; then
   badpeg
 fi
@@ -154,6 +161,13 @@ if [[ $TWITTER == 0 ]]; then
   echo "twitter encoded"
   open ${OUTPUT_PATH}
 fi
+
+if [[ $ENCODE_3D == 0 ]]; then
+  3d_encode
+  echo "3d encoded"
+  open ${OUTPUT_PATH}
+fi
+
 
 # test for jpegs at the provided path
 echo FIN
