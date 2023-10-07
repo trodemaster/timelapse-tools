@@ -21,6 +21,8 @@ INPUT_PATH="$PWD"
 OUTPUT_PATH="$PWD/encoded.mp4"
 ENCODE_ARCHIVE=1
 ENCODE_ARCHIVE_HARDWARE=1
+ENCODE_CONVERT265=1
+ENCODE_3D=1
 HD_ARCHIVE=1
 JPEG_EXT="none"
 BADPEG=1
@@ -37,6 +39,7 @@ OPTIONS:
    -a    Encode with archive format
    -v    Encode with hevc hardware encoder 60fps
    -d    Encode with HD 1080p 60fps
+   -c    Convert to h265
    -3    Encode 3d
    -t    Encode for twitter
    -h    Help
@@ -45,14 +48,15 @@ EOF
 }
 
 # process options and arguments
-while getopts "bp:o:adtvh3" OPTION; do
+while getopts "bp:o:adtvh3c" OPTION; do
   case $OPTION in
   h) usage && exit 1 ;;
   p) INPUT_PATH=$OPTARG ;;
   o) OUTPUT_PATH=$OPTARG ;;
   a) ENCODE_ARCHIVE=0 ;;
   v) ENCODE_ARCHIVE_HARDWARE=0 ;;
-  3) ENCODE_3D=0;;
+  c) ENCODE_CONVERT265=0 ;;
+  3) ENCODE_3D=0 ;;
   d) HD_ARCHIVE=0 ;;
   t) TWITTER=0 ;;
   b) BADPEG=0 ;;
@@ -132,10 +136,21 @@ twitter_encode() {
   fi
 }
 
-3d_encode() {
-    ffmpeg -i "${INPUT_PATH}" -pix_fmt yuv420p -vf stereo3d=sbsl:arbg -c:a copy ${OUTPUT_PATH} 
+# extract filename without extension
+filename() {
+  fullfilename=$(basename $1)
+  echo "${fullfilename%.*}"
 }
 
+# confirm output path is a dir for conversion options
+
+3d_encode() {
+  ffmpeg -y -i "${INPUT_PATH}" -vf "stereo3d=sbs2l:arcc" -vcodec hevc_videotoolbox -b:v 3600k -tag:v hvc1 -c:a aac -b:a 96k -pix_fmt yuv420p -movflags faststart "${OUTPUT_PATH}""$(filename "${INPUT_PATH}")".mp4
+}
+
+convert_x265() {
+  ffmpeg -y -i "${INPUT_PATH}" -vcodec hevc_videotoolbox -b:v 1600k -tag:v hvc1 -c:a aac -b:a 96k -pix_fmt yuv420p -movflags faststart "${OUTPUT_PATH}""$(filename "${INPUT_PATH}")".mp4
+}
 
 if [[ $BADPEG == 0 ]]; then
   badpeg
@@ -163,11 +178,14 @@ if [[ $TWITTER == 0 ]]; then
 fi
 
 if [[ $ENCODE_3D == 0 ]]; then
-  3d_encode
   echo "3d encoded"
-  open ${OUTPUT_PATH}
+  3d_encode
 fi
 
+if [[ $ENCODE_CONVERT265 == 0 ]]; then
+  echo "converting to x265"
+  convert_x265
+fi
 
 # test for jpegs at the provided path
 echo FIN
