@@ -21,12 +21,12 @@ INPUT_PATH="$PWD"
 OUTPUT_PATH="$PWD/encoded.mp4"
 ENCODE_ARCHIVE=1
 ENCODE_ARCHIVE_HARDWARE=1
-ENCODE_CONVERT265=1
-ENCODE_3D=1
+ENCODE_HEVC=1
 HD_ARCHIVE=1
 JPEG_EXT="none"
 BADPEG=1
 TWITTER=1
+ENCODE_3D=1
 
 # print out usage
 usage() {
@@ -36,7 +36,8 @@ OPTIONS:
    -p    Path to source images
    -b    Search for bad jpeg files and delete them without warning
    -o    Path to output file including extension
-   -a    Encode with archive format
+   -a    Encode with archive format 60fps
+   -x    Encode with x265 and maintain size and fps
    -v    Encode with hevc hardware encoder 60fps
    -d    Encode with HD 1080p 60fps
    -c    Convert to h265
@@ -48,14 +49,14 @@ EOF
 }
 
 # process options and arguments
-while getopts "bp:o:adtvh3c" OPTION; do
+while getopts "bp:o:adtvh3x" OPTION; do
   case $OPTION in
   h) usage && exit 1 ;;
   p) INPUT_PATH=$OPTARG ;;
   o) OUTPUT_PATH=$OPTARG ;;
   a) ENCODE_ARCHIVE=0 ;;
+  x) ENCODE_HEVC=0 ;;
   v) ENCODE_ARCHIVE_HARDWARE=0 ;;
-  c) ENCODE_CONVERT265=0 ;;
   3) ENCODE_3D=0 ;;
   d) HD_ARCHIVE=0 ;;
   t) TWITTER=0 ;;
@@ -136,20 +137,12 @@ twitter_encode() {
   fi
 }
 
-# extract filename without extension
-filename() {
-  fullfilename=$(basename $1)
-  echo "${fullfilename%.*}"
-}
-
-# confirm output path is a dir for conversion options
-
 3d_encode() {
-  ffmpeg -y -i "${INPUT_PATH}" -vf "stereo3d=sbs2l:arcc" -vcodec hevc_videotoolbox -b:v 3600k -tag:v hvc1 -c:a aac -b:a 96k -pix_fmt yuv420p -movflags faststart "${OUTPUT_PATH}""$(filename "${INPUT_PATH}")".mp4
+  ffmpeg -i "${INPUT_PATH}" -pix_fmt yuv420p -vf stereo3d=sbsl:arbg -c:a copy ${OUTPUT_PATH}
 }
 
-convert_x265() {
-  ffmpeg -y -i "${INPUT_PATH}" -vcodec hevc_videotoolbox -b:v 1600k -tag:v hvc1 -c:a aac -b:a 96k -pix_fmt yuv420p -movflags faststart "${OUTPUT_PATH}""$(filename "${INPUT_PATH}")".mp4
+hevc_encode() {
+  ffmpeg -y -thread_queue_size 16384 -i "${INPUT_PATH}" -crf 26 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 ${OUTPUT_PATH}
 }
 
 if [[ $BADPEG == 0 ]]; then
@@ -182,9 +175,10 @@ if [[ $ENCODE_3D == 0 ]]; then
   3d_encode
 fi
 
-if [[ $ENCODE_CONVERT265 == 0 ]]; then
-  echo "converting to x265"
-  convert_x265
+if [[ $ENCODE_HEVC == 0 ]]; then
+  hevc_encode
+  echo "x265 encoded"
+  open ${OUTPUT_PATH}
 fi
 
 # test for jpegs at the provided path
