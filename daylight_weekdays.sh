@@ -76,10 +76,10 @@
 # copy all the files created between 7am and 5:30pm to dadu-oneday
 # 7am = 0700
 # 5:30pm = 1730
-find /Volumes/Bomb19/dadu -type f -name "*-0[7-9]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
-find /Volumes/Bomb19/dadu -type f -name "*-1[0-6]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
-find /Volumes/Bomb19/dadu -type f -name "*-17[0-2]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
-find /Volumes/Bomb19/dadu -type f -name "*-173[0-0]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
+# find /Volumes/Bomb19/dadu -type f -name "*-0[7-9]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
+# find /Volumes/Bomb19/dadu -type f -name "*-1[0-6]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
+# find /Volumes/Bomb19/dadu -type f -name "*-17[0-2]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
+# find /Volumes/Bomb19/dadu -type f -name "*-173[0-0]*.jpg" -exec cp {} /Volumes/Bomb19/dadu-processed \;
 
 # Check if the file is from a weekend
 find /Volumes/Bomb19/dadu-processed -type f -name "*.jpg" | while read file; do
