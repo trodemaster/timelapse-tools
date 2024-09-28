@@ -72,16 +72,6 @@
 # 240922-2350.jpg
 # 240922-2355.jpg
 
-  DATE=$(echo $1 | cut -d'-' -f1)
-  DAY=$(date -j -f "%d%m%y" $DATE +%u)
-
-  if [ $DAY -eq 6 ] || [ $DAY -eq 7 ]; then
-    echo "The file $1 is from a weekend."
-  else
-    echo "The file $1 is not from a weekend."
-  fi
-
-
 
 # copy all the files created between 7am and 5:30pm to dadu-oneday
 # 7am = 0700
