@@ -87,8 +87,8 @@ find /Volumes/Bomb19/dadu-processed -type f -name "*.jpg" | while read file; do
   DAY=$(date -j -f "%d%m%y" $DATE +%u)
 
   if [ $DAY -eq 6 ] || [ $DAY -eq 7 ]; then
-    echo "The file /Volumes/Bomb19/dadu-processed/$file is from a weekend."
-    rm /Volumes/Bomb19/dadu-processed/$file
+    echo "The file $file is from a weekend."
+    rm $file
   fi
 done
 
