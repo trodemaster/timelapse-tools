@@ -16,6 +16,8 @@ JPEG_EXT="none"
 BADPEG=1
 VIMEO=1
 ENCODE_3D=1
+BATCH_PATTERN=""
+BATCH_MODE=1
 
 
 # test for ffmpeg in the path
@@ -38,7 +40,8 @@ usage() {
 USAGE: ./encode -p /Volumes/fast/timelapseSource -o /Volumes/fast/timelapseArchive.mp4
 OPTIONS:
    -p    Path to source images
-   -b    Search for bad jpeg files and delete them without warning
+   -b    Batch mode with pattern (e.g. "*.mp4" or "*.mkv")
+   -B    Search for bad jpeg files and delete them without warning
    -o    Path to output file including extension
    -a    Encode with archive format 60fps
    -x    Encode with x265 and maintain size and fps
@@ -53,7 +56,7 @@ EOF
 }
 
 # process options and arguments
-while getopts "bp:o:adtvh3x" OPTION; do
+while getopts "bp:o:adtvh3xB" OPTION; do
   case $OPTION in
   h) usage && exit 1 ;;
   p) INPUT_PATH=$OPTARG ;;
@@ -64,7 +67,8 @@ while getopts "bp:o:adtvh3x" OPTION; do
   3) ENCODE_3D=0 ;;
   d) HD_ARCHIVE=0 ;;
   v) VIMEO=0 ;;
-  b) BADPEG=0 ;;
+  b) BATCH_PATTERN=$OPTARG; BATCH_MODE=0 ;;
+  B) BADPEG=0 ;;
   esac
 done
 
@@ -142,12 +146,80 @@ vimeo_encode() {
 }
 
 3d_encode() {
-  nice -n 19 "${FFMPEG_PATH}" -i "${INPUT_PATH}" -vf "stereo3d=sbsl:arbg, scale=-1:2160:flags=lanczos" -crf 18 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 ${OUTPUT_PATH}
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${INPUT_PATH}" -vf "stereo3d=sbsl:arbg, scale=-1:2160:flags=lanczos" -crf 18 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 ${OUTPUT_PATH}
 }
 
 hevc_encode() {
   nice -n 19 "${FFMPEG_PATH}" -y -thread_queue_size 16384 -i "${INPUT_PATH}" -crf 26 -tune fastdecode -preset slow -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 -profile:v main -level:v 5.1 -movflags +faststart -brand hev1 ${OUTPUT_PATH}
 }
+
+batch_encode() {
+  if [[ -z "$BATCH_PATTERN" ]]; then
+    echo "Error: Batch pattern is required"
+    exit 1
+  fi
+
+  # Ensure output path is a directory
+  if [[ ! -d "${OUTPUT_PATH}" ]]; then
+    echo "Creating output directory: ${OUTPUT_PATH}"
+    mkdir -p "${OUTPUT_PATH}"
+  fi
+
+  # Create array of matching files
+  mapfile -t FILES < <(find "${INPUT_PATH}" -type f -name "${BATCH_PATTERN}" | sort)
+  
+  if [[ ${#FILES[@]} -eq 0 ]]; then
+    echo "No files found matching pattern: ${BATCH_PATTERN}"
+    exit 1
+  fi
+
+  echo "Found ${#FILES[@]} files to process"
+  
+  # Process each file
+  for file in "${FILES[@]}"; do
+    echo "Processing: ${file}"
+    # Get original filename and change extension to mp4
+    filename=$(basename "${file}")
+    output_file="${OUTPUT_PATH}/${filename%.*}.mp4"
+    
+    # Set input and output for this iteration
+    INPUT_PATH="${file}"
+    OUTPUT_PATH="${output_file}"
+    
+    # Call appropriate encode function based on flags
+    if [[ $ENCODE_3D == 0 ]]; then
+      3d_encode
+    elif [[ $ENCODE_HEVC == 0 ]]; then
+      hevc_encode
+    elif [[ $VIMEO == 0 ]]; then
+      vimeo_encode
+    elif [[ $HD_ARCHIVE == 0 ]]; then
+      hd_encode
+    else
+      echo "No encoding option selected for batch mode"
+      exit 1
+    fi
+
+    # Check if encoding was successful and file is not a JPEG
+    if [[ $? -eq 0 ]]; then
+      # Get file extension in lowercase
+      ext=$(echo "${file##*.}" | tr '[:upper:]' '[:lower:]')
+      if [[ "$ext" != "jpg" && "$ext" != "jpeg" ]]; then
+        echo "Setting 'completed' label on: ${file}"
+        xattr -w com.apple.metadata:kMDItemFinderComment "completed" "${file}"
+      else
+        echo "Skipping label for JPEG file: ${file}"
+      fi
+    else
+      echo "Encoding failed for: ${file}"
+    fi
+  done
+}
+
+if [[ $BATCH_MODE == 0 ]]; then
+  batch_encode
+  exit 0
+fi
 
 if [[ $BADPEG == 0 ]]; then
   badpeg
