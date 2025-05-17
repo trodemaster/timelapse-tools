@@ -84,12 +84,17 @@ find /Volumes/Bomb19/dadu -type f -name "*-173[0-0]*.jpg" -exec cp {} /Volumes/B
 # Check if the file is from a weekend
 find /Volumes/Bomb19/dadu-processed -type f -name "*.jpg" | while read file; do
   DATE=$(echo $(basename $file) | cut -d'-' -f1)
-  DAY=$(date -j -f "%d%m%y" $DATE +%u)
+  DAY=$(date -j -f "%y%m%d" $DATE +%u)
 
   if [ $DAY -eq 6 ] || [ $DAY -eq 7 ]; then
     echo "The file $file is from a weekend."
-    cp $file /Volumes/Bomb19/dadu-weekend
+    # cp $file /Volumes/Bomb19/dadu-weekend
+    rm $file
   fi
 done
 
+# encode the file
+encode -v -p /Volumes/Bomb19/dadu-processed -o /Volumes/Bomb19/dadu-processed-hevc.mp4
+
 exit 0
+
