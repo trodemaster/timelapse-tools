@@ -16,6 +16,7 @@ BADPEG=1
 VIMEO=1
 ENCODE_3D=1
 ENCODE_HEVC_VIDEOTOOLBOX=1 # New preset variable
+CONVERT_MKV_TO_MP4=1 # New preset variable for MKV to MP4 conversion
 BATCH_PATTERN=""
 BATCH_MODE=1
 
@@ -56,6 +57,7 @@ OPTIONS:
    -T    Encode with hevc_videotoolbox (Apple hardware) for single files
    -d    Encode with HD 1080p 60fps
    -c    Convert to h265
+   -M    Convert MKV to MP4 (copy streams, iPad compatible)
    -3    Encode 3d
    -v    Encode for Vimeo
    -h    Help
@@ -76,6 +78,7 @@ BATCH PROCESSING:
    -v    Vimeo encoding
    -3    3D encoding
    -d    HD encoding
+   -M    MKV to MP4 conversion (stream copy)
 
    Note: JPEG sequence encoding (-a, -t) is not available in batch mode
 EOF
@@ -162,6 +165,15 @@ hevc_videotoolbox_encode() {
   nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -c:v hevc_videotoolbox -q:v 50 -profile:v main -level:v 5.1 -pix_fmt yuv420p -movflags +faststart -tag:v hvc1 -brand hev1 "${output_path}"
 }
 
+convert_mkv_to_mp4() {
+  local input_path="$1"
+  local output_path="$2"
+  # Ensure output has .mp4 extension
+  local base_output_path="${output_path%.*}"
+  nice -n 19 "${FFMPEG_PATH}" -y -i "${input_path}" -c:v copy -c:a copy -movflags +faststart -pix_fmt yuv420p -tag:v hvc1 -brand hev1 "${base_output_path}.mp4"
+  echo "MKV to MP4 conversion complete: ${base_output_path}.mp4"
+}
+
 # Batch Processing Function
 batch_encode() {
   if [[ -z "$BATCH_PATTERN" ]]; then
@@ -213,9 +225,12 @@ batch_encode() {
     elif [[ $HD_ARCHIVE == 0 ]]; then
       echo "Encoding HD: ${file}"
       hd_encode "${file}" "${output_file}"
+    elif [[ $CONVERT_MKV_TO_MP4 == 0 ]]; then
+      echo "Converting MKV to MP4: ${file}"
+      convert_mkv_to_mp4 "${file}" "${output_file}"
     else
       echo "Error: No encoding option selected for batch mode"
-      echo "Please specify one of: -3 (3D), -x (HEVC), -v (Vimeo), or -d (HD)"
+      echo "Please specify one of: -3 (3D), -x (HEVC), -v (Vimeo), -d (HD), or -M (MKV to MP4)"
       exit 1
     fi
 
@@ -310,6 +325,13 @@ main() {
     hevc_videotoolbox_encode "${INPUT_PATH}" "${OUTPUT_PATH}"
     echo "hevc_videotoolbox encoded"
   fi
+
+  if [[ $CONVERT_MKV_TO_MP4 == 0 ]]; then
+    convert_mkv_to_mp4 "${INPUT_PATH}" "${OUTPUT_PATH}"
+    # The open command might need adjustment if OUTPUT_PATH doesn't have .mp4
+    # For now, convert_mkv_to_mp4 handles the .mp4 extension for the actual output file.
+    # Consider if 'open' should use the modified output_file name from the function.
+  fi
 }
 
 # Process all command line arguments
@@ -338,6 +360,7 @@ process_args() {
       -T) ENCODE_HEVC_VIDEOTOOLBOX=0 ;; # New option
       -3) ENCODE_3D=0 ;;
       -d) HD_ARCHIVE=0 ;;
+      -M) CONVERT_MKV_TO_MP4=0 ;; # New option for MKV to MP4
       -v) VIMEO=0 ;;
       -B) BADPEG=0 ;;
       -b) 
@@ -369,6 +392,7 @@ process_args() {
   echo "ENCODE_HEVC_VIDEOTOOLBOX: $ENCODE_HEVC_VIDEOTOOLBOX" # New debug output
   echo "VIMEO: $VIMEO"
   echo "HD_ARCHIVE: $HD_ARCHIVE"
+  echo "CONVERT_MKV_TO_MP4: $CONVERT_MKV_TO_MP4" # New debug output
 }
 
 # Process arguments
